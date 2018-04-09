@@ -86,7 +86,7 @@ def load_vbbs(ann_dir):
             vbbs[set_name][video_name] = vid_anno
     return vbbs
 
-def get_image_identifiers(imageSets_file):
+def load_image_set(imageSets_file):
     """
     Get image identifiers from ImageSets dir's file for train or test. like ['set00_V000_I00000','set00_V000_I00001'...]
     """
@@ -109,9 +109,8 @@ def save_image_set(fname, image_ids):
             image_ids = pdt.caltech.get_image_ids('caltech_train',vbbs,30)
             pdt.caltech.save_image_set('./ImageSets/caltech_train_1x.txt', image_ids)
     """
-    path, filename = os.path.split(fname)
-    if not os.path.exists(path):
-        os.mkdir(path)
+    path,_ = os.path.split(fname)
+    mkdir_if_missing(path)
     f = open(fname,'w')
     for img in image_ids:
         f.write("{}\n".format(img['file_name']))
@@ -533,7 +532,7 @@ def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0):
 
     return anns, annId_str, objId_str + vbb['maxObj']
 
-def save_json(annotations,image_ids,json_file):
+def save_coco(annotations,image_ids,json_file):
     """
     Save annotations to a json file, as coco style.
 
@@ -547,10 +546,9 @@ def save_json(annotations,image_ids,json_file):
         vbbs = pdt.caltech.load_vbbs('/home/all/datasets/caltech/annotations')
         annotations, annId_str, objId_str = pdt.caltech.vbbs2cocos(vbbs,'caltech')
         image_ids = pdt.caltech.get_image_ids('caltech',vbbs)
-        pdt.caltech.save_json(annotations,image_ids,'caltech.json')
+        pdt.caltech.save_coco(annotations,image_ids,'caltech.json')
     """
     json_data = {'info':{}, 'images':[], 'annotations':[], 'categories':[]}
-    json_file = open(json_file,'w')
 
     json_data['images'] = image_ids
 
@@ -563,8 +561,7 @@ def save_json(annotations,image_ids,json_file):
             'vbb_version': '1.4',
             'create_time': '2018-04-03'}
 
-    json.dump(json_data, json_file)
-    json_file.close()
+    save_json(json_data,json_file)
 
 def seqs2imgs(dbName,sdir,tdir,skip=1):
     """

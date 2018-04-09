@@ -32,8 +32,10 @@ def load_json(filename):
     A = json.open(filename)
     return A
 
-# def save_json(data,filename):
-#     import json
-#     json_file = open(json_file,'w')
-#     json.dump(json_data, json_file)
-#     json_file.close()
+def save_json(data,filename):
+    import json
+    path, _ = os.path.split(filename)
+    mkdir_if_missing(path)
+    json_file = open(filename,'w')
+    json.dump(data, json_file)
+    json_file.close()

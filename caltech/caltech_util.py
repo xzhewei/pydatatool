@@ -684,6 +684,7 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
             continue
         print 'Writing {} VOC results file'.format(cls)
         tmp=''
+        f=False
         for im_ind, im_id in enumerate(image_ids):
             s,v,i = im_id.split('_')
             vname = os.path.join(path,s,v+'.txt')

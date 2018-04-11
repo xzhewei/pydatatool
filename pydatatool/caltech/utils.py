@@ -524,9 +524,11 @@ def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0):
 
                 ann['bbox']=obj['pos']
                 ann['bbox_v']=obj['posv']
-                ann['ignore']=filter(obj)
-                ann['iscrowd']=ann['ignore']
+                ann['ignore']=obj['ignore']
+                ann['iscrowd']=filter(obj)
                 ann['occl']=obj['occl']
+                ann['segmentation']=[]
+                ann['area']=obj['pos'][2]*obj['pos'][3]
                 annId_str=annId_str+1
                 anns.append(ann)
 

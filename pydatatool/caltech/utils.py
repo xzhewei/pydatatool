@@ -113,7 +113,7 @@ def save_image_set(fname, image_ids):
     mkdir_if_missing(path)
     f = open(fname,'w')
     for img in image_ids:
-        f.write("{}\n".format(img['file_name']))
+        f.write("{}\n".format(os.path.splitext(img['file_name'])[0]))
 
 def bbox_filter(bboxs,param):
     """
@@ -440,8 +440,8 @@ def get_image_ids(dbName,vbbs,skip=1):
             frames = vbbs['set{:0>2}'.format(s)]['V{:0>3}'.format(v)]['nFrame']
             for i in range(skip-1,frames,skip):
                 id = get_image_id(s,v,i)
-                file_name = "set{:0>2}_V{:0>3}_I{:0>5}".format(s,v,i)
-                image_ids.append({'id':id,'file_name':file_name,'height':640, 'width':480})
+                file_name = "set{:0>2}_V{:0>3}_I{:0>5}.jpg".format(s,v,i)
+                image_ids.append({'id':id,'file_name':file_name,'height':480, 'width':640})
     return image_ids
 
 def get_image_id(s,v,i):

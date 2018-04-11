@@ -552,11 +552,15 @@ def save_coco(annotations,image_ids,json_file):
     """
     json_data = {'info':{}, 'images':[], 'annotations':[], 'categories':[]}
 
+    img_ids = [img['id'] for img in image_ids]
+
+    annos = [ann for ann in annotations if ann['image_id'] in img_ids]
+
     json_data['images'] = image_ids
 
     json_data['categories'] = get_categories()
 
-    json_data['annotations'] = annotations
+    json_data['annotations'] = annos
 
     json_data['info']={'description': 'This is a json version label of the Caltech Pedestrian dataset, converted from vbb version.',
             'version': '1.1',

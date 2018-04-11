@@ -29,7 +29,7 @@ def load_pkl(filename):
 
 def load_json(filename):
     import json
-    A = json.open(filename)
+    A = json.load(open(filename,'r'))
     return A
 
 def save_json(data,filename):

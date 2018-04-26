@@ -2,3 +2,5 @@
 
 build/
 output/
+dist/
+pydatatool.egg-info/

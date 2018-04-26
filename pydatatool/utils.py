@@ -1,3 +1,6 @@
+# Copyright (c) 2018, Zhewei Xu
+# [xzhewei-at-gmail.com]
+# Licensed under The MIT License [see LICENSE for details]
 import os
 
 def mkdir_if_missing(path):

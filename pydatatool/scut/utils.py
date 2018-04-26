@@ -1,6 +1,17 @@
-# Copyright (c) 2018, Zhewei Xu
-# [xzhewei-at-gmail.com]
-# Licensed under The MIT License [see LICENSE for details]
+# Copyright (c) 2018-present, Zhewei Xu.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##############################################################################
 
 from scipy.io import loadmat
 from collections import defaultdict
@@ -43,7 +54,7 @@ def load_vbb(filename):
     obj_list = dict()
     for frame_id, obj in enumerate(objLists):
         objs = []
-        if len(obj) > 0:
+        if obj.shape[1] > 0:
             for id, pos, occl, lock, posv in zip(obj['id'][0], obj['pos'][0], obj['occl'][0], obj['lock'][0], obj['posv'][0]):
                 id = int(id[0][0])-1 # matlab is 1-start
                 pos = pos[0].tolist()
@@ -330,8 +341,8 @@ def get_default_filter():
     df['format']  = 0
     df['ellipse'] = 1
     df['squarify']= []
-    df['lbls']    = ['person']
-    df['ilbls']   = ['people','person-fa','person?']
+    df['lbls']    = ['walk_person','ride_person']
+    df['ilbls']   = ['squat_person','people','person?','people?']
     df['hRng']    = [20,float('inf')]
     df['wRng']    = []
     df['aRng']    = []
@@ -339,17 +350,19 @@ def get_default_filter():
     df['oRng']    = []
     df['xRng']    = []
     df['yRng']    = []
-    df['vRng']    = [0.2,1]
+    df['vRng']    = []
     df['occl']    = []
     df['squarify'] = []
     
     return df
 
 def get_categories():
-    cat = [{'id':1, 'name':'person'},
-           {'id':2, 'name':'people'},
-           {'id':3, 'name':'person-fa'},
-           {'id':4, 'name':'person?'}]
+    cat = [{'id':1, 'name':'walk_person'},
+           {'id':2, 'name':'ride_person'},
+           {'id':3, 'name':'squat_person'},
+           {'id':4, 'name':'people'},
+           {'id':5, 'name':'person?'},
+           {'id':6, 'name':'people?'}]
     return cat
 
 def get_category_id(name):
@@ -370,54 +383,45 @@ def get_category_name(id):
 
 def get_dbInfo(dbName):
     db={}
-    db['caltech']={
-        'setIds':range(0,11), #set00-set10
-        'vidIds':[range(0,15), #V000-V014
-                  range(0,6),  #V000-V005
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,19), #V000-V018
+    vids = [range(0,3), #V000-V002
+                  range(0,4), #V000-V003
+                  range(0,2), #V000-V001
+                  range(0,3), #V000-V002
                   range(0,12), #V000-V011
                   range(0,11), #V000-V010
+                  range(0,7), #V000-V006
+                  range(0,2), #V000-V001
+                  range(0,3), #V000-V002
+                  range(0,2), #V000-V001
+                  range(0,1), #V000
+                  range(0,4), #V000-V003
+                  range(0,4), #V000-V003
+                  range(0,2), #V000-V001
+                  range(0,3), #V000-V002
                   range(0,12), #V000-V011
-                  range(0,12)], #V000-V011
-        'skip':30,
+                  range(0,10), #V000-V009
+                  range(0,8), #V000-V007
+                  range(0,2), #V000-V001
+                  range(0,3), #V000-V002
+                  range(0,2)] #V000-V001
+    db['scut']={
+        'setIds':range(0,21), #set00-set20
+        'vidIds':vids,
+        'skip':25,
         'ext':'jpg'
     }
 
-    db['caltech_train']={
-        'setIds':range(0,6), #set00-set10
-        'vidIds':[range(0,15), #V000-V014
-                  range(0,6),  #V000-V005
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,19), #V000-V018
-                  range(0,12), #V000-V011
-                  range(0,11), #V000-V010
-                  range(0,12), #V000-V011
-                  range(0,12)], #V000-V011
-        'skip':30,
+    db['scut_train']={
+        'setIds':range(0,11), #set00-set10      
+        'vidIds':vids,
+        'skip':25,
         'ext':'jpg'
     }
 
-    db['caltech_test']={
-        'setIds':range(6,11), #set00-set10
-        'vidIds':[range(0,15), #V000-V014
-                  range(0,6),  #V000-V005
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,19), #V000-V018
-                  range(0,12), #V000-V011
-                  range(0,11), #V000-V010
-                  range(0,12), #V000-V011
-                  range(0,12)], #V000-V011
-        'skip':30,
+    db['scut_test']={
+        'setIds':range(11,21), #set11set20      
+        'vidIds':vids,
+        'skip':25,
         'ext':'jpg'
     }
 
@@ -436,7 +440,7 @@ def get_image_ids(dbName,vbbs,skip=1):
             for i in range(skip-1,frames,skip):
                 id = get_image_id(s,v,i)
                 file_name = "set{:0>2}_V{:0>3}_I{:0>5}.jpg".format(s,v,i)
-                image_ids.append({'id':id,'file_name':file_name,'height':480, 'width':640})
+                image_ids.append({'id':id,'file_name':file_name,'height':576, 'width':720})
     return image_ids
 
 def get_image_id(s,v,i):
@@ -507,7 +511,7 @@ def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0):
     for i in range(0,vbb['nFrame']):
 
         objs = vbb['objLists'][i]
-        if len(objs) > 0:
+        if len(objs)> 0:
             for obj in objs:
                 ann={}
                 ann['id']=annId_str
@@ -628,7 +632,8 @@ def get_classes():
     """
     Compatible with PASCAL dataset operate.
     """
-    classes = ('__background__','person','people','person?','person-fa')
+    classes = ('__background__','walk_person', 'ride_person',
+               'squat_person', 'people','person?','people?')
     return classes
 
 def write_voc_results_file(all_boxes,image_ids,path,classes):
@@ -649,14 +654,14 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
     """
     # set_trace()
     for cls_ind, cls in enumerate(classes):
-        if cls != 'person':
+        if cls not in ['walk_person','ride_person']:
             continue
         print 'Writing {} VOC results file'.format(cls)
         tmp=''
         f=False
         for im_ind, im_id in enumerate(image_ids):
             s,v,i = im_id.split('_')
-            vname = os.path.join(path,s,v+'.txt')
+            vname = os.path.join(path+'-'+cls,s,v+'.txt')
 
             if vname!=tmp:
                 if f:
@@ -673,6 +678,30 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
                 line = "{:d},{:.3f},{:.3f},{:.3f},{:.3f},{:.7f}\n".format(
                     int(i[1:])+1, dets[k,0]+1, dets[k,1]+1, dets[k,2]-dets[k,0]+1, dets[k,3]-dets[k,1]+1, dets[k,-1])
                 f.write(line)
+    tmp=''
+    f=False
+    print 'Writing {} VOC results file'.format('person')
+    for im_ind, im_id in enumerate(image_ids):
+        s,v,i = im_id.split('_')
+        vname = os.path.join(path,s,v+'.txt')
+        for cls_ind, cls in enumerate(classes):
+            if cls not in ['walk_person','ride_person']:
+                continue
+            if vname!=tmp:
+                if f:
+                    f.close()
+                mkdir_if_missing(os.path.split(vname)[0])
+                f = open(vname,'w')
+                tmp = vname
+            dets = all_boxes[cls_ind][im_ind]
+            if dets == []:
+                continue
+            # the VOCdevkit expects 1-based indices
+            for k in xrange(dets.shape[0]):
+                line = "{:d},{:.3f},{:.3f},{:.3f},{:.3f},{:.7f}\n".format(
+                    int(i[1:])+1, dets[k,0]+1, dets[k,1]+1, dets[k,2]-dets[k,0]+1, dets[k,3]-dets[k,1]+1, dets[k,-1])
+                f.write(line)
+
 
 def convert_voc_annoations(image_identifiers, ann_dir, param={}):
     '''

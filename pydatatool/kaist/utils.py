@@ -1,6 +1,17 @@
-# Copyright (c) 2018, Zhewei Xu
-# [xzhewei-at-gmail.com]
-# Licensed under The MIT License [see LICENSE for details]
+# Copyright (c) 2018-present, Zhewei Xu.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##############################################################################
 
 from scipy.io import loadmat
 from collections import defaultdict
@@ -43,7 +54,7 @@ def load_vbb(filename):
     obj_list = dict()
     for frame_id, obj in enumerate(objLists):
         objs = []
-        if len(obj) > 0:
+        if obj.shape[1] > 0:
             for id, pos, occl, lock, posv in zip(obj['id'][0], obj['pos'][0], obj['occl'][0], obj['lock'][0], obj['posv'][0]):
                 id = int(id[0][0])-1 # matlab is 1-start
                 pos = pos[0].tolist()
@@ -224,9 +235,16 @@ def filter(obj,param={}):
             v = (posv[2]*posv[3])/(pos[2]*pos[3])
         flag = flag or v < param['vRng'][0] or v > param['vRng'][1]
     if len(param['occl']) != 0:
-        '''occl= 0|1|2 represent for no occl | occl | no and occl'''
-        if param['occl'] != 2:
-            flag = flag or (obj['occl'] != param['occl'])
+        '''occl= 0|1|2 represent for no occl | partial occl | heavy occl
+           1 is represent for none
+           2 is represent for partial
+           3 is represent for none and partial
+           4 is represent for heavy
+           5 is represent for none and heavy
+           6 is represent for partial and heavy
+           7 is represent for none and partial and heavy
+        '''
+        flag = flag or ((2**obj['occl'] & param['occl'])==0)
     
     return flag
 
@@ -331,7 +349,7 @@ def get_default_filter():
     df['ellipse'] = 1
     df['squarify']= []
     df['lbls']    = ['person']
-    df['ilbls']   = ['people','person-fa','person?']
+    df['ilbls']   = ['cyclist','people','person?']
     df['hRng']    = [20,float('inf')]
     df['wRng']    = []
     df['aRng']    = []
@@ -339,7 +357,7 @@ def get_default_filter():
     df['oRng']    = []
     df['xRng']    = []
     df['yRng']    = []
-    df['vRng']    = [0.2,1]
+    df['vRng']    = []
     df['occl']    = []
     df['squarify'] = []
     
@@ -347,8 +365,8 @@ def get_default_filter():
 
 def get_categories():
     cat = [{'id':1, 'name':'person'},
-           {'id':2, 'name':'people'},
-           {'id':3, 'name':'person-fa'},
+           {'id':2, 'name':'cyclist'},
+           {'id':3, 'name':'people'},
            {'id':4, 'name':'person?'}]
     return cat
 
@@ -370,54 +388,73 @@ def get_category_name(id):
 
 def get_dbInfo(dbName):
     db={}
-    db['caltech']={
-        'setIds':range(0,11), #set00-set10
-        'vidIds':[range(0,15), #V000-V014
+    
+    vids = [range(0,9),  #V000-V008
                   range(0,6),  #V000-V005
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,19), #V000-V018
-                  range(0,12), #V000-V011
-                  range(0,11), #V000-V010
-                  range(0,12), #V000-V011
-                  range(0,12)], #V000-V011
-        'skip':30,
+                  range(0,5),  #V000-V004
+                  range(0,2),  #V000-V001
+                  range(0,2),  #V000-V001
+                  range(0,1),  #V000-V000
+                  range(0,5),  #V000-V004
+                  range(0,3),  #V000-V002
+                  range(0,3),  #V000-V002
+                  range(0,1),  #V000-V000
+                  range(0,2),  #V000-V001
+                  range(0,2)] #V000-V001
+    
+    db['kaist_train_all']={
+        'setIds':range(0,6),  #set00-set05
+        'vidIds':vids,
+        'skip':20,
         'ext':'jpg'
     }
 
-    db['caltech_train']={
-        'setIds':range(0,6), #set00-set10
-        'vidIds':[range(0,15), #V000-V014
-                  range(0,6),  #V000-V005
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,19), #V000-V018
-                  range(0,12), #V000-V011
-                  range(0,11), #V000-V010
-                  range(0,12), #V000-V011
-                  range(0,12)], #V000-V011
-        'skip':30,
+    db['kaist_train_day']={
+        'setIds':range(0,3),  #set00-set02
+        'vidIds':vids,
+        'skip':20,
         'ext':'jpg'
     }
 
-    db['caltech_test']={
-        'setIds':range(6,11), #set00-set10
-        'vidIds':[range(0,15), #V000-V014
-                  range(0,6),  #V000-V005
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,12), #V000-V011
-                  range(0,13), #V000-V012
-                  range(0,19), #V000-V018
-                  range(0,12), #V000-V011
-                  range(0,11), #V000-V010
-                  range(0,12), #V000-V011
-                  range(0,12)], #V000-V011
-        'skip':30,
+    db['kaist_train_night']={
+        'setIds':range(3,6),  #set03-set05
+        'vidIds':vids,
+        'skip':20,
+        'ext':'jpg'
+    }
+
+    db['kaist_test_all']={
+        'setIds':range(6,12),  #set06-set11
+        'vidIds':vids,
+        'skip':20,
+        'ext':'jpg'
+    }
+
+    db['kaist_test_day']={
+        'setIds':range(6,9),  #set06-set08
+        'vidIds':vids,
+        'skip':20,
+        'ext':'jpg'
+    }
+
+    db['kaist_test_night']={
+        'setIds':range(9,12),  #set09-set11
+        'vidIds':vids,
+        'skip':20,
+        'ext':'jpg'
+    }
+
+    db['kaist_place']={
+        'setIds':range(0,6),  #set00-set05
+        'vidIds':vids,
+        'skip':20,
+        'ext':'jpg'
+    }
+
+    db['kaist_all']={
+        'setIds':range(0,12),  #set00-set11
+        'vidIds':vids,
+        'skip':20,
         'ext':'jpg'
     }
 
@@ -436,7 +473,7 @@ def get_image_ids(dbName,vbbs,skip=1):
             for i in range(skip-1,frames,skip):
                 id = get_image_id(s,v,i)
                 file_name = "set{:0>2}_V{:0>3}_I{:0>5}.jpg".format(s,v,i)
-                image_ids.append({'id':id,'file_name':file_name,'height':480, 'width':640})
+                image_ids.append({'id':id,'file_name':file_name,'height':512, 'width':640})
     return image_ids
 
 def get_image_id(s,v,i):
@@ -507,7 +544,7 @@ def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0):
     for i in range(0,vbb['nFrame']):
 
         objs = vbb['objLists'][i]
-        if len(objs) > 0:
+        if len(objs)> 0:
             for obj in objs:
                 ann={}
                 ann['id']=annId_str
@@ -628,7 +665,8 @@ def get_classes():
     """
     Compatible with PASCAL dataset operate.
     """
-    classes = ('__background__','person','people','person?','person-fa')
+    classes = ('__background__','person', 'cyclist',
+               'people', 'person?')
     return classes
 
 def write_voc_results_file(all_boxes,image_ids,path,classes):

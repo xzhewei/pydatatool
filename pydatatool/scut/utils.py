@@ -23,10 +23,6 @@ import time
 
 from pydatatool.utils import *
 
-IPDB = False
-if IPDB:
-    from ipdb import set_trace
-
 def load_vbb(filename):
     """
     A is a dict load from the caltech vbb file has the same data structure.
@@ -231,7 +227,6 @@ def filter(obj,param={}):
         elif posv==pos:
             v = 0
         else:
-            if IPDB: set_trace()
             v = (posv[2]*posv[3])/(pos[2]*pos[3])
         flag = flag or v < param['vRng'][0] or v > param['vRng'][1]
     if len(param['occl']) != 0:
@@ -674,7 +669,7 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
             if dets == []:
                 continue
             # the VOCdevkit expects 1-based indices
-            for k in xrange(dets.shape[0]):
+            for k in xrange(dets.shape[0]): # dets is ndarray
                 line = "{:d},{:.3f},{:.3f},{:.3f},{:.3f},{:.7f}\n".format(
                     int(i[1:])+1, dets[k,0]+1, dets[k,1]+1, dets[k,2]-dets[k,0]+1, dets[k,3]-dets[k,1]+1, dets[k,-1])
                 f.write(line)
@@ -747,3 +742,30 @@ def convert_voc_annoations(image_identifiers, ann_dir, param={}):
         #vis_annotations(image_identifier, anno[image_identifier])
     return anno
 
+def do_matlab_eval(path, res_dir, output_dir):
+    import subprocess
+    print('-----------------------------------------------------')
+    print('Computing results with the official MATLAB eval code.')
+    print('-----------------------------------------------------')
+    cmd = 'cd {} && '.format(path)
+    cmd += '{:s} -nodisplay -nodesktop '.format('matlab')
+    cmd += '-r "dbstop if error;'
+    cmd += 'startup;'
+    cmd += 'scut_eval(\'{:s}\',\'{:s}\',\'{:s}\'); quit;"' \
+        .format(
+            os.path.abspath(res_dir),
+            os.path.abspath(output_dir),
+            'res')
+    print('Running:\n{}'.format(cmd))
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+    while p.poll() is None:
+        line = p.stdout.readline()
+        line = line.strip()
+        if line:
+            print('Subprogram output: [{}]'.format(line))
+    if p.returncode == 0:
+        print('Subprogram success')
+    else:
+        print('Subprogram failed')

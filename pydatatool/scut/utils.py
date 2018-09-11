@@ -1,23 +1,10 @@
-# Copyright (c) 2018-present, Zhewei Xu.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-##############################################################################
+# Copyright (c) 2018, Zhewei Xu
+# [xzhewei-at-gmail.com]
+# Licensed under The MIT License [see LICENSE for details]
 
 from scipy.io import loadmat
 from collections import defaultdict
-import json
 import glob
-import os
 import math
 import time
 
@@ -506,7 +493,7 @@ def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0):
     for i in range(0,vbb['nFrame']):
 
         objs = vbb['objLists'][i]
-        if len(objs)> 0:
+        if len(objs) > 0:
             for obj in objs:
                 ann={}
                 ann['id']=annId_str
@@ -697,7 +684,6 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
                     int(i[1:])+1, dets[k,0]+1, dets[k,1]+1, dets[k,2]-dets[k,0]+1, dets[k,3]-dets[k,1]+1, dets[k,-1])
                 f.write(line)
 
-
 def convert_voc_annoations(image_identifiers, ann_dir, param={}):
     '''
     Get all image_identifiers annotation
@@ -743,6 +729,13 @@ def convert_voc_annoations(image_identifiers, ann_dir, param={}):
     return anno
 
 def do_matlab_eval(path, res_dir, output_dir):
+    '''
+    This function use matlab code evalate Miss Rate. It's depends on http://github.com/xzhewei/datatool
+    :param path: datatool dir
+    :param res_dir: results dir
+    :param output_dir: evaluate results output dir
+    :return: None
+    '''
     import subprocess
     print('-----------------------------------------------------')
     print('Computing results with the official MATLAB eval code.')

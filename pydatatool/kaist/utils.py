@@ -1,31 +1,14 @@
-# Copyright (c) 2018-present, Zhewei Xu.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-##############################################################################
+# Copyright (c) 2018, Zhewei Xu
+# [xzhewei-at-gmail.com]
+# Licensed under The MIT License [see LICENSE for details]
 
 from scipy.io import loadmat
 from collections import defaultdict
-import json
 import glob
-import os
 import math
 import time
 
 from pydatatool.utils import *
-
-IPDB = False
-if IPDB:
-    from ipdb import set_trace
 
 def load_vbb(filename):
     """
@@ -231,7 +214,6 @@ def filter(obj,param={}):
         elif posv==pos:
             v = 0
         else:
-            if IPDB: set_trace()
             v = (posv[2]*posv[3])/(pos[2]*pos[3])
         flag = flag or v < param['vRng'][0] or v > param['vRng'][1]
     if len(param['occl']) != 0:
@@ -702,7 +684,6 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
                 mkdir_if_missing(os.path.split(vname)[0])
                 f = open(vname,'w')
                 tmp = vname
-                
             dets = all_boxes[cls_ind][im_ind]
             if dets == []:
                 continue

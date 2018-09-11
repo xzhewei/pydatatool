@@ -12,10 +12,6 @@ import time
 
 from pydatatool.utils import *
 
-IPDB = False
-if IPDB:
-    from ipdb import set_trace
-
 def load_vbb(filename):
     """
     A is a dict load from the caltech vbb file has the same data structure.
@@ -43,7 +39,7 @@ def load_vbb(filename):
     obj_list = dict()
     for frame_id, obj in enumerate(objLists):
         objs = []
-        if len(obj) > 0:
+        if obj.shape[1] > 0:
             for id, pos, occl, lock, posv in zip(obj['id'][0], obj['pos'][0], obj['occl'][0], obj['lock'][0], obj['posv'][0]):
                 id = int(id[0][0])-1 # matlab is 1-start
                 pos = pos[0].tolist()
@@ -220,7 +216,6 @@ def filter(obj,param={}):
         elif posv==pos:
             v = 0
         else:
-            if IPDB: set_trace()
             v = (posv[2]*posv[3])/(pos[2]*pos[3])
         flag = flag or v < param['vRng'][0] or v > param['vRng'][1]
     if len(param['occl']) != 0:
@@ -664,7 +659,6 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
                 mkdir_if_missing(os.path.split(vname)[0])
                 f = open(vname,'w')
                 tmp = vname
-                
             dets = all_boxes[cls_ind][im_ind]
             if dets == []:
                 continue

@@ -4,3 +4,5 @@ build/
 output/
 dist/
 pydatatool.egg-info/
+
+.idea/

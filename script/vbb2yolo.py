@@ -1,3 +1,6 @@
+'''
+Convert vbb annotation to darknet framework required.
+'''
 import pydatatool as pdt
 import os
 from os import getcwd

@@ -509,14 +509,12 @@ def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0,param={}):
                 ann['id']=annId_str
                 ann['obj_id']=objId_str+obj['id']
                 ann['image_id']=get_image_id(setId,vidId,i)
-
                 ann['category_name']=vbb['objLbl'][obj['id']]
                 ann['category_id']=get_category_id(vbb['objLbl'][obj['id']])
-
                 ann['bbox']=obj['pos']
                 ann['bbox_v']=obj['posv']
                 ann['ignore']=obj['ignore']
-                ann['iscrowd']=filter(obj,param)
+                ann['iscrowd']=filter(obj,param) or obj['ignore']
                 ann['occl']=obj['occl']
                 ann['segmentation']=[]
                 ann['area']=obj['pos'][2]*obj['pos'][3]

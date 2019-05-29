@@ -431,7 +431,7 @@ def get_image_id(s,v,i):
     """
     return s*(10**8)+v*(10**5)+i
 
-def vbbs2cocos(vbbs,dbName,annId_str=0,objId_str=0):
+def vbbs2cocos(vbbs,dbName,annId_str=0,objId_str=0,param={}):
     """
     Convert caltech a subset, like train_1x or test_1x, to coco style.
 
@@ -463,12 +463,13 @@ def vbbs2cocos(vbbs,dbName,annId_str=0,objId_str=0):
         set_name = 'set{:0>2}'.format(s)
         for v in dbInfo['vidIds'][s]:
             vid_name = 'V{:0>3}'.format(v)
-            anns, annId_str, objId_str = vbb2coco(s,v,vbbs[set_name][vid_name],annId_str,objId_str)
+            anns, annId_str, objId_str = \
+                vbb2coco(s,v,vbbs[set_name][vid_name],annId_str,objId_str,param)
             annotations.extend(anns)
     
     return annotations, annId_str, objId_str
 
-def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0):
+def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0,param={}):
     """
     Convert vbb struct to coco style.
 
@@ -506,7 +507,7 @@ def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0):
                 ann['bbox']=obj['pos']
                 ann['bbox_v']=obj['posv']
                 ann['ignore']=obj['ignore']
-                ann['iscrowd']=filter(obj)
+                ann['iscrowd']=filter(obj,param) or obj['ignore']
                 ann['occl']=obj['occl']
                 ann['segmentation']=[]
                 ann['area']=obj['pos'][2]*obj['pos'][3]

@@ -523,6 +523,65 @@ def vbb2coco(setId,vidId,vbb,annId_str=0,objId_str=0,param={}):
 
     return anns, annId_str, objId_str + vbb['maxObj']
 
+def load_txt(filename):
+    # label x y w h occ xv yv wv hv ignore ang
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    annotations = [x.strip().split() for x in lines if not x.startswith("%")]
+    objs=[]
+    for i in range(0,len(annotations)):
+        obj = {}
+        obj['id'] = i
+        obj['lbl'] = annotations[i][0]
+        obj['pos'] = [float(a) for a in annotations[i][1:5]]
+        obj['posv'] = [float(a) for a in annotations[i][6:10]]
+        obj['occl'] = int(annotations[i][5])
+        obj['ignore'] = int(annotations[i][10])
+        obj['ang'] = float(annotations[i][11])
+        objs.append(obj)
+
+    return objs
+
+def txt2coco(imgId,objs,annId_str=0,objId_str=0,param={}):
+    anns = []
+    for i in range(0,len(objs)):
+        ann = {}
+        ann['id'] = annId_str
+        ann['obj_id'] = objId_str + i
+        ann['image_id'] = imgId
+        ann['category_name'] = objs[i]['lbl']
+        ann['category_id'] = get_category_id(objs[i]['lbl'])
+        ann['bbox'] = objs[i]['pos']
+        ann['bbox_v'] = objs[i]['posv']
+        ann['ignore'] = objs[i]['ignore']
+        ann['iscrowd'] = filter(objs[i], param) or objs[i]['ignore']
+        ann['occl'] = objs[i]['occl']
+        ann['segmentation'] = []
+        ann['area'] = objs[i]['pos'][2] * objs[i]['pos'][3]
+        annId_str = annId_str + 1
+        anns.append(ann)
+    return anns, annId_str, objId_str + len(anns)
+
+def txts2cocos(pth,annId_str=0,objId_str=0,param={}):
+    annotations = []
+    image_ids = []
+    files = sorted(os.listdir(pth))
+    for i in range(len(files)):
+        imgIds = files[i].split('.')[0].split("_")
+        setId = int(imgIds[0][3:])
+        vidId = int(imgIds[1][1:])
+        frmId = int(imgIds[2][1:])
+        imgId = get_image_id(setId, vidId, frmId)
+        annpth = os.path.join(pth,files[i])
+        objs = load_txt(annpth)
+        anns, annId_str, objId_str = txt2coco(imgId, objs, annId_str, objId_str, param)
+        annotations.extend(anns)
+        img_name = files[i].split('.')[0]+".jpg"
+        image_ids.append(
+            {'id': imgId, 'file_name': img_name, 'height': 480, 'width': 640})
+
+    return annotations, image_ids, annId_str, objId_str
+
 def save_coco(annotations,image_ids,json_file):
     """
     Save annotations to a json file, as coco style.

@@ -36,20 +36,20 @@ def convert_annotation(sname,anns,img):
 
         out_file.write(str(cls_id-1) + " " + " ".join([str(a) for a in bb]) + '\n')
 
-print "Load vbbs ..."
+print("Load vbbs ...")
 vbbs = pdt.scut.load_vbbs('/home/all/datasets/SCUT_FIR_101/annotations_vbb')
-print "Done."
-print "Convert train..."
+print("Done.")
+print("Convert train...")
 annotations_train, annId_str, objId_str = pdt.scut.vbbs2cocos(vbbs,'scut_train')
-print "Convert test..."
+print("Convert test...")
 annotations_test, annId_str, objId_str = pdt.scut.vbbs2cocos(vbbs,'scut_test',annId_str, objId_str)
-print "Done."
-print "get scut image_ids_train.."
+print("Done.")
+print("get scut image_ids_train..")
 image_ids_train = pdt.scut.get_image_ids('scut_train',vbbs,2)
-print "Done."
-print "get scut image_ids_test.."
+print("Done.")
+print("get scut image_ids_test..")
 image_ids_test = pdt.scut.get_image_ids('scut_test',vbbs,25)
-print "Done."
+print("Done.")
 
 imgs = {'train':image_ids_train,'test':image_ids_test}
 imgid2anns_train = defaultdict(list)
@@ -66,8 +66,8 @@ imgid2anns['test'] = imgid2anns_test
 
 sets = ['train','test']
 
-# wd = getcwd()
-wd = "/home/xuzhewei/lib/darknet/data/scut"
+wd = getcwd()
+# wd = "/home/xuzhewei/lib/darknet/data/scut"
 for s in sets:
     if not os.path.exists('output/yolo/labels/%s'%(s)):
         os.makedirs('output/yolo/labels/%s'%(s))
@@ -78,7 +78,7 @@ for s in sets:
         fname= img['file_name'].split('.')[0]
 
         if len(anns)==0 and s=='train':
-            # filt empty img
+            # filter empty img
             continue
 
         convert_annotation(s,anns,img)

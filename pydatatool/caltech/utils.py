@@ -647,7 +647,7 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
     for cls_ind, cls in enumerate(classes):
         if cls != 'person':
             continue
-        print 'Writing {} VOC results file'.format(cls)
+        print('Writing {} VOC results file'.format(cls))
         tmp=''
         f=False
         for im_ind, im_id in enumerate(image_ids):
@@ -708,7 +708,7 @@ def convert_voc_annoations(image_identifiers, ann_dir, param={}):
             else:
                 anno[image_identifier] = data[image_set_name][image_seq_name][image_id]
         else:
-            print "Warning: No %s.jpg found in annotations" %(image_identifier)
+            print("Warning: No %s.jpg found in annotations" %(image_identifier))
            
         #vis_annotations(image_identifier, anno[image_identifier])
     return anno

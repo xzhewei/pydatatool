@@ -1,5 +1,5 @@
 __author__ = 'Zhewei Xu'
 from .utils import *
-import caltech
-import scut
-import kaist
+import pydatatool.caltech
+import pydatatool.kaist
+import pydatatool.scut

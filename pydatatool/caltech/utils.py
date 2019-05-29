@@ -770,3 +770,37 @@ def convert_voc_annoations(image_identifiers, ann_dir, param={}):
         #vis_annotations(image_identifier, anno[image_identifier])
     return anno
 
+def do_matlab_eval(path, res_dir, output_dir):
+    '''
+    This function use matlab code evalate Miss Rate. It's depends on http://github.com/xzhewei/datatool
+    :param path: datatool dir
+    :param res_dir: results dir
+    :param output_dir: evaluate results output dir
+    :return: None
+    '''
+    import subprocess
+    print('-----------------------------------------------------')
+    print('Computing results with the official MATLAB eval code.')
+    print('-----------------------------------------------------')
+    cmd = 'cd {} && '.format(path)
+    cmd += '{:s} -nodisplay -nodesktop '.format('matlab')
+    cmd += '-r "dbstop if error;'
+    cmd += 'startup;'
+    cmd += 'caltech_eval(\'{:s}\',\'{:s}\',\'{:s}\'); quit;"' \
+        .format(
+            os.path.abspath(res_dir),
+            os.path.abspath(output_dir),
+            'res')
+    print('Running:\n{}'.format(cmd))
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+    while p.poll() is None:
+        line = p.stdout.readline()
+        line = line.strip()
+        if line:
+            print('Subprogram output: [{}]'.format(line))
+    if p.returncode == 0:
+        print('Subprogram success')
+    else:
+        print('Subprogram failed')

@@ -14,3 +14,9 @@ pdt.scut.save_coco(annotations_train_10x,image_ids_train,'../output/json/caltech
 pth = "/home/all/datasets/caltech/extract/test_1x_new"
 annotations_test_1x, image_ids_test, annId_str, objId_str = pdt.caltech.txts2cocos(pth,annId_str,objId_str,{})
 pdt.scut.save_coco(annotations_test_1x,image_ids_test,'../output/json/caltech_test_1x_new.json')
+
+
+igandic = [a['ignore']==a['iscrowd'] for a in annotations_test_1x]
+print(all(igandic))
+print(len(image_ids_train)==42782)
+print(len(image_ids_test)==4024)

@@ -182,7 +182,8 @@ def filter(obj,param={}):
     flag = False
 
     if len(param)==0:
-        param=get_default_filter()
+        return flag
+        # param=get_default_filter()
 
     if len(param['ilbls']) != 0:
         flag = flag or (obj['lbl'] in param['ilbls'])
@@ -218,10 +219,6 @@ def filter(obj,param={}):
         else:
             v = (posv[2]*posv[3])/(pos[2]*pos[3])
         flag = flag or v < param['vRng'][0] or v > param['vRng'][1]
-    if len(param['occl']) != 0:
-        '''occl= 0|1|2 represent for no occl | occl | no and occl'''
-        if param['occl'] != 2:
-            flag = flag or (obj['occl'] != param['occl'])
     
     return flag
 

@@ -6,3 +6,4 @@ dist/
 pydatatool.egg-info/
 
 .idea/
+.vscode/

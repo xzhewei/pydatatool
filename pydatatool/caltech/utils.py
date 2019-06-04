@@ -718,7 +718,7 @@ def write_voc_results_file(all_boxes,image_ids,path,classes):
             if dets == []:
                 continue
             # the VOCdevkit expects 1-based indices
-            for k in xrange(dets.shape[0]):
+            for k in range(dets.shape[0]):
                 line = "{:d},{:.3f},{:.3f},{:.3f},{:.3f},{:.7f}\n".format(
                     int(i[1:])+1, dets[k,0]+1, dets[k,1]+1, dets[k,2]-dets[k,0]+1, dets[k,3]-dets[k,1]+1, dets[k,-1])
                 f.write(line)

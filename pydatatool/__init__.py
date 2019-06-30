@@ -3,3 +3,4 @@ from .utils import *
 import pydatatool.caltech
 import pydatatool.kaist
 import pydatatool.scut
+import pydatatool.citypersons

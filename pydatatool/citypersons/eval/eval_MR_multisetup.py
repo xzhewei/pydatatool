@@ -418,7 +418,7 @@ class COCOeval:
         '''
         def _summarize(iouThr=None, maxDets=100 ):
             p = self.params
-            iStr = ' {:<18} {} @ {:<18} [ IoU={:<9} | height={:>6s} | visibility={:>6s} ] = {:0.2f}%'
+            iStr = ' {:<18} {} @ {:<18} [ IoU={:<9} | height={:>3s} | visibility={:>3s} ] = {:0.2f}%'
             titleStr = 'Average Miss Rate'
             typeStr = '(MR)'
             setupStr = p.SetupLbl[id_setup]

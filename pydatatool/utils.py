@@ -17,7 +17,7 @@ def save_pkl(data,filename):
     """
     Save a data to a .pkl file
     """
-    import cPickle
+    import _pickle as cPickle
     with open(filename,'w') as f:
         cPickle.dump(data,f)
 
@@ -25,7 +25,7 @@ def load_pkl(filename):
     """
     Load a data from a .pkl file.
     """
-    import cPickle
+    import _pickle as cPickle
     with open(filename,'r') as f:
         data = cPickle.load(f)
     return data

@@ -7,3 +7,5 @@ pydatatool.egg-info/
 
 .idea/
 .vscode/
+.ipynb_checkpoints/
+*.so

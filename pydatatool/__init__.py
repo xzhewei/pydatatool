@@ -1,6 +1,9 @@
 __author__ = 'Zhewei Xu'
 from .utils import *
-import pydatatool.caltech
-import pydatatool.kaist
-import pydatatool.scut
-import pydatatool.citypersons
+from . import caltech
+from . import scut
+from . import kaist
+from . import citypersons
+from . import eurocity
+from . import crowdhuman
+

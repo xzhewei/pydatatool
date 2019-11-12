@@ -330,10 +330,15 @@ class COCOeval:
             p = self.params
         p.catIds = p.catIds if p.useCats == 1 else [-1]
         T           = len(p.iouThrs)
-        R           = len(p.fppiThrs)
+        F           = len(p.fppiThrs)
+        R           = len(p.recThrs)
         K           = len(p.catIds) if p.useCats else 1
         M           = len(p.maxDets)
-        ys   = -np.ones((T,R,K,M)) # -1 for the precision of absent categories
+        ys          = -np.ones((T, F, K, M)) # -1 for the precision of absent categories
+        precision   = -np.ones((T, R, K, M))
+        recall      = -np.ones((T, K, M))
+        scores      = -np.ones((T, R, K, M))
+
 
 
         # create dictionary for future indexing
@@ -364,6 +369,7 @@ class COCOeval:
                 # mergesort is used to be consistent as Matlab implementation.
 
                 inds = np.argsort(-dtScores, kind='mergesort')
+                dtScoresSorted = dtScores[inds]
 
                 dtm = np.concatenate([e['dtMatches'][:, 0:maxDet] for e in E], axis=1)[:, inds]
                 dtIg = np.concatenate([e['dtIgnore'][:, 0:maxDet] for e in E], axis=1)[:, inds]
@@ -383,44 +389,72 @@ class COCOeval:
                     tp = np.array(tp)
                     fppi = np.array(fp)/I0
                     nd = len(tp)
-                    recall = tp / npig
-                    q = np.zeros((R,))
+                    rc = tp / npig
+                    pr = tp / (fp+tp+np.spacing(1))
+                    q = np.zeros((F,))
+                    pp = np.zeros((R,))
+                    ss= np.zeros((R,))
+
+                    if nd:
+                        recall[t, k, m] = rc[-1]
+                    else:
+                        recall[t, k, m] = 0
 
                     # numpy is slow without cython optimization for accessing elements
                     # use python array gets significant speed improvement
-                    recall = recall.tolist()
+                    rc = rc.tolist()
+                    pr = pr.tolist()
                     q = q.tolist()
+                    pp = pp.tolist()
 
                     for i in range(nd - 1, 0, -1):
-                        if recall[i] < recall[i - 1]:
-                            recall[i - 1] = recall[i]
+                        if rc[i] < rc[i - 1]:
+                            rc[i - 1] = rc[i]
+                        if pr[i] > pr[i - 1]:
+                            pr[i - 1] = pr[i]
 
                     inds = np.searchsorted(fppi, p.fppiThrs, side='right') - 1
                     try:
                         for ri, pi in enumerate(inds):
-                            q[ri] = recall[pi]
+                            q[ri] = rc[pi]
                     except:
                         pass
                     ys[t,:,k,m] = np.array(q)
+
+                    inds = np.searchsorted(rc, p.recThrs, side='left')
+                    try:
+                        for ri, pi in enumerate(inds):
+                            pp[ri] = pr[pi]
+                            ss[ri] = dtScoresSorted[pi]
+                    except:
+                        pass
+                    precision[t, :, k, m] = np.array(pp)
+                    scores[t, :, k, m] = np.array(ss)
+
         self.eval = {
             'params': p,
-            'counts': [T, R, K, M],
+            'counts': [T, F, K, M],
             'date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'TP':   ys,
+            'precision': precision,
+            'recall': recall,
+            'scores': scores,
         }
         toc = time.time()
         # print('DONE (t={:0.2f}s).'.format( toc-tic))
 
-    def summarize(self,id_setup, res_file):
+    def summarize(self,id_setup, res_file, type=[0]):
         '''
         Compute and display summary metrics for evaluation results.
         Note this functin can *only* be applied on the default parameter setting
+        id_setup: test subset index
+        type: metric index
         '''
-        def _summarize(iouThr=None, maxDets=100 ):
+        def _summarize(type=0,iouThr=None, maxDets=100):
             p = self.params
-            iStr = ' {:<18} {} @ {:<18} [ IoU={:<9} | height={:>3s} | visibility={:>3s} ] = {:0.2f}%'
-            titleStr = 'Average Miss Rate'
-            typeStr = '(MR)'
+            iStr = ' {:<18} {} @ {:<18} [ IoU={:<3} | height={:<3s} | visibility={:<3s} ] = {:0.2f}%'
+            titleStr = ['Average Miss Rate', 'Average Precision', 'Average Recall']
+            typeStr = ['(MR)', '(AP)', '(AR)']
             setupStr = p.SetupLbl[id_setup]
             iouStr = '{:0.2f}:{:0.2f}'.format(p.iouThrs[0], p.iouThrs[-1]) \
                 if iouThr is None else '{:0.2f}'.format(iouThr)
@@ -429,29 +463,54 @@ class COCOeval:
 
             mind = [i for i, mDet in enumerate(p.maxDets) if mDet == maxDets]
 
-            # dimension of precision: [TxRxKxAxM]
-            s = self.eval['TP']
-            # IoU
-            if iouThr is not None:
-                t = np.where(iouThr == p.iouThrs)[0]
-                s = s[t]
-            mrs = 1-s[:,:,:,mind]
-
-            if len(mrs[mrs<2])==0:
-                mean_s = -1
+            if type==0:
+                # dimension of precision: [TxRxKxAxM]
+                s = self.eval['TP']
+                # IoU
+                if iouThr is not None:
+                    t = np.where(iouThr == p.iouThrs)[0]
+                    s = s[t]
+                mrs = 1-s[:,:,:,mind]
+                if len(mrs[mrs<2])==0:
+                    mean_s = -1
+                else:
+                    mean_s = np.log(mrs[mrs<2])
+                    mean_s = np.mean(mean_s)
+                    mean_s = np.exp(mean_s)
+            elif type == 1:
+                # dimension of precision: [TxRxKxM]
+                s = self.eval['precision']
+                # IoU
+                if iouThr is not None:
+                    t = np.where(iouThr == p.iouThrs)[0]
+                    s = s[t]
+                s = s[:, :, :, mind]
+            elif type == 2:
+                # dimension of recall: [TxKxAxM]
+                s = self.eval['recall']
+                if iouThr is not None:
+                    t = np.where(iouThr == p.iouThrs)[0]
+                    s = s[t]
+                s = s[:,:,mind]
             else:
-                mean_s = np.log(mrs[mrs<2])
-                mean_s = np.mean(mean_s)
-                mean_s = np.exp(mean_s)
-            print(iStr.format(titleStr, typeStr,setupStr, iouStr, heightStr, occlStr, mean_s*100))
-            res_file.write(iStr.format(titleStr, typeStr,setupStr, iouStr, heightStr, occlStr, mean_s*100))
-            # res_file.write(str(mean_s * 100))
-            res_file.write('\n')
+                raise TypeError("The type {} is only support for 0:MR, 1:AP, 2:AR".format(type))
+
+            if type == 1 or type == 2:
+                if len(s[s > -1]) == 0:
+                    mean_s = -1
+                else:
+                    mean_s = np.mean(s[s > -1])
+            print(iStr.format(titleStr[type], typeStr[type], setupStr, iouStr, heightStr, occlStr, mean_s*100))
+            if res_file:
+                res_file.write(iStr.format(titleStr[type], typeStr[type], setupStr, iouStr, heightStr, occlStr, mean_s*100))
+                res_file.write('\n')
             return mean_s
 
         if not self.eval:
             raise Exception('Please run accumulate() first')
-        _summarize(iouThr=.5,maxDets=1000)
+
+        for t in type:
+            _summarize(type=t, iouThr=.5, maxDets=self.params.maxDets[0])
 
     def __str__(self):
         self.summarize()
@@ -464,14 +523,12 @@ class Params:
         self.imgIds = []
         self.catIds = []
         # np.arange causes trouble.  the data point on arange is slightly larger than the true value
-
+        self.iouThrs = np.array([0.5])  # np.linspace(.5, 0.95, np.round((0.95 - .5) / .05) + 1, endpoint=True)
         self.recThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True)
-        self.fppiThrs = np.array([0.0100,    0.0178,    0.0316,    0.0562,    0.1000,    0.1778,    0.3162,    0.5623,    1.0000])
+        self.fppiThrs = np.array([0.0100,0.0178,0.0316,0.0562,0.1000,0.1778,0.3162,0.5623,1.0000])
         self.maxDets = [1000]
         self.expFilter = 1.25
         self.useCats = 1
-
-        self.iouThrs = np.array([0.5])  # np.linspace(.5, 0.95, np.round((0.95 - .5) / .05) + 1, endpoint=True)
 
         # self.HtRng = [[50, 1e5 ** 2], [50,75], [50, 1e5 ** 2], [20, 1e5 ** 2]]
         # self.VisRng = [[0.65, 1e5 ** 2], [0.65, 1e5 ** 2], [0.2,0.65], [0.2, 1e5 ** 2]]
@@ -481,9 +538,11 @@ class Params:
         # self.VisRng = [[0.65, 1e5 ** 2], [0.65, 1e5 ** 2], [0.65, 1e5 ** 2], [0.65, 1e5 ** 2]]
         # self.SetupLbl = ['Reasonable', 'small', 'middle', 'large']
 
-        self.HtRng = [[50, 1e5 ** 2], [50, 1e5 ** 2], [50, 1e5 ** 2], [50, 1e5 ** 2]]
-        self.VisRng = [[0.65, 1e5 ** 2], [0.9, 1e5 ** 2], [0.65, 0.9], [0, 0.65]]
-        self.SetupLbl = ['Reasonable', 'bare', 'partial', 'heavy']
+        self.HtRng = [[50, 1e5 ** 2], [50, 1e5 ** 2], [50, 1e5 ** 2], [50, 1e5 ** 2], [50, 75], [75, 100],
+                      [100, 1e5 ** 2], [20, 1e5 ** 2]]
+        self.VisRng = [[0.65, 1e5 ** 2], [0.9, 1e5 ** 2], [0.65, 0.9], [0, 0.65], [0.65, 1e5 ** 2], [0.65, 1e5 ** 2],
+                       [0.65, 1e5 ** 2], [0.2, 1e5 ** 2]]
+        self.SetupLbl = ['Reasonable', 'bare', 'partial', 'heavy', 'small', 'middle', 'large', 'All']
 
 
     def __init__(self, iouType='segm'):

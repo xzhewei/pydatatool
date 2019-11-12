@@ -319,10 +319,11 @@ class COCOeval:
         R           = len(p.recThrs)
         K           = len(p.catIds) if p.useCats else 1
         M           = len(p.maxDets)
-        precision   = -np.ones((T,R,K,M))
-        recall      = -np.ones((T,K,M))
-        scores      = -np.ones((T,R,K,M))
-        ys          = -np.ones((T,F,K,M)) # -1 for the precision of absent categories
+        ys          = -np.ones((T, F, K, M)) # -1 for the precision of absent categories
+        precision   = -np.ones((T, R, K, M))
+        recall      = -np.ones((T, K, M))
+        scores      = -np.ones((T, R, K, M))
+
 
 
         # create dictionary for future indexing
@@ -427,12 +428,12 @@ class COCOeval:
         toc = time.time()
         # print('DONE (t={:0.2f}s).'.format( toc-tic))
 
-    def summarize(self, res_file=None):
+    def summarize(self, res_file=None, type=[0]):
         '''
         Compute and display summary metrics for evaluation results.
         Note this functin can *only* be applied on the default parameter setting
         '''
-        def _summarize(type=0,iouThr=None, maxDets=100 ):
+        def _summarize(type=0,iouThr=None, maxDets=100):
             p = self.params
             iStr = '{:<18} @ {} [ IoU={:<3} ] = {:0.2f}%'
             titleStr = ['Average Miss Rate','Average Precision','Average Recall']
@@ -472,7 +473,7 @@ class COCOeval:
                     s = s[t]
                 s = s[:,:,mind]
             else:
-                raise TypeError("The type {} is only support for 0(MR),1(AP),2(AR)".format(type))
+                raise TypeError("The type {} is only support for 0:MR, 1:AP, 2:AR".format(type))
 
             if type == 1 or type == 2:
                 if len(s[s > -1]) == 0:
@@ -489,9 +490,8 @@ class COCOeval:
         if not self.eval:
             raise Exception('Please run accumulate() first')
 
-        _summarize(type=0, iouThr=.5, maxDets=self.params.maxDets[0])
-        _summarize(type=1, iouThr=.5, maxDets=self.params.maxDets[0])
-        _summarize(type=2, iouThr=.5, maxDets=self.params.maxDets[0])
+        for t in type:
+            _summarize(type=t, iouThr=.5, maxDets=self.params.maxDets[0])
 
     def __str__(self):
         self.summarize()
